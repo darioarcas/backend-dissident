@@ -10,17 +10,17 @@ if (admin.apps.length === 0) {
 }
 
 
-const db = admin.firestore();  // Acceso a Firestore (<-------------ACA FALLA)
+const db = admin.firestore();  // Acceso a Firestore 
 
 
 const crearPreferenciaPago = async ({ cursoNombre, cursoId, uid, base_url }) => {
   // Validar que base_url sea una URL permitida
-  const allowedOrigins = ['https://academiagroove.com', 'https://darioarcas.github.io', 'http://localhost:3000'];
+  const allowedOrigins = ['https://dissidentsschool.com', 'https://darioarcas.github.io', 'http://localhost:3000'];
   if (!allowedOrigins.includes(base_url)) {
     throw new Error('Origen no permitido');
   }
   if (base_url === 'https://darioarcas.github.io' || base_url === 'http://localhost:3000') {
-    base_url += '/pagina-groove-inicio-de-sesion/#';
+    base_url += '/dissidents-web/#';
   }
 
   // Obtener el precio del curso desde Firestore
@@ -52,7 +52,7 @@ const crearPreferenciaPago = async ({ cursoNombre, cursoId, uid, base_url }) => 
         success: successUrl,
         failure: failureUrl,
       },
-      notification_url: `https://backend-groove-pi69.onrender.com/api/webhook/mercadopago`,  // URL del webhook para notificaciones
+      notification_url: `https://backend-dissident.onrender.com/api/webhook/mercadopago`,  // URL del webhook para notificaciones
       external_reference: `${cursoId}_${uid}`,  // Identificador único para la transacción
       auto_return: 'approved',
     };
