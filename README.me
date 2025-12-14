@@ -1,0 +1,62 @@
+/backend/README.me
+
+
+# Backend - Plataforma de Cursos Online
+
+Este backend está construido con **Node.js + Express**, y utiliza **Firebase Admin** y **Mercado Pago** para manejar la lógica de usuarios y pagos.
+
+
+
+
+## 📁 Estructura del proyecto
+
+backend/
+├── app.js # Archivo principal donde se configura y levanta el servidor Express
+├── .env # Variables de entorno (API keys, Firebase, Mercado Pago)
+├── firebaseAdmin.js # Inicialización del SDK Admin de Firebase para acceder a Firestore y validar tokens
+
+├── /routes
+│ ├── paymentRoutes.js # Endpoint para crear preferencias de pago (Mercado Pago)
+│ └── webhookRoutes.js # Webhook que recibe notificaciones de Mercado Pago tras un pago exitoso
+
+├── /middlewares
+│ └── authMiddleware.js # Middleware para verificar el token de autenticación de Firebase
+
+├── /services
+│ └── mercadoPagoService.js # Lógica para comunicarse con la API REST de Mercado Pago (crear preferencia de pago)
+│ └── paypalService.js # (opcional) lógica futura para pagos con Paypal
+
+
+
+
+
+
+
+
+## 🔧 Requisitos
+
+- Node.js
+- Firebase Admin SDK (con un archivo `serviceAccountKey.json`)
+- Cuenta de desarrollador de Mercado Pago
+- Cuentas de prueba de comprador y vendedor
+
+## 📌 Funcionalidades
+
+- Autenticación de usuarios con Firebase
+- Creación de preferencias de pago con Mercado Pago
+- Recepción de notificaciones de pago mediante Webhook
+- Actualización automática del acceso del usuario a cursos comprados
+- Reglas de seguridad para proteger Firestore
+
+## 🧪 Pruebas
+
+- Crear preferencias desde frontend o Postman.
+- Realizar pagos con cuentas de prueba.
+- Verificar que el campo `cursosComprados` del usuario se actualice automáticamente en Firestore.
+
+## 🔒 Seguridad
+
+- Solo el backend puede modificar `cursosComprados` (validado con reglas de Firestore).
+- Autenticación con tokens de Firebase en endpoints protegidos.
+- Webhook verificado con consulta a la API oficial de Mercado Pago.
+
