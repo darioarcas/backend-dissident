@@ -33,7 +33,7 @@ const crearPreferenciaPago = async ({ cursoNombre, cursoId, uid, base_url }) => 
     }
 
     const cursoData = cursoDoc.data();
-    const precio = cursoData.precio;  // Suponiendo que el campo "precio" está en el curso
+    const precio = cursoData.precio;
 
     const successUrl = `${base_url}/perfil`;
     const failureUrl = `${base_url}/error-pago`;

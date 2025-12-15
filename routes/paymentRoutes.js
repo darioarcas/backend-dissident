@@ -20,7 +20,7 @@ router.post('/create_preference', async (req, res) => {
     console.log("🔍 Curso obtenido de Firestore:", cursoDoc);
 
     if (!cursoDoc.exists) {
-      return res.status(404).json({ error: 'Curso no encontrado' });
+      return res.status(404).json({ error: 'Curso no encontrado', cursoDoc });
     }
 
     const cursoData = cursoDoc.data();
