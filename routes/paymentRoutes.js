@@ -85,7 +85,6 @@ router.post('/create_subscription', async (req, res) => {
     await userRef.update({
       suscripcionActiva: true,  // Activamos el campo de suscripción
       suscripcionFechaInicio: admin.firestore.FieldValue.serverTimestamp(),
-      // suscripcionFechaVencimiento: admin.firestore.FieldValue.serverTimestamp().toMillis() + 5 * 60 * 1000,  // 5 minutos de prueba
       suscripcionFechaVencimiento: admin.firestore.FieldValue.serverTimestamp(),
     });
 
