@@ -76,4 +76,86 @@ const crearPreferenciaPago = async ({ cursoNombre, cursoId, uid, base_url }) => 
   }
 };
 
-module.exports = { crearPreferenciaPago };
+
+
+
+
+
+
+// Crear una suscripción
+const crearSuscripcion = async ({ uid, base_url }) => {
+  const allowedOrigins = ['https://dissidentsschool.com', 'https://darioarcas.github.io', 'http://localhost:3000'];
+  if (!allowedOrigins.includes(base_url)) {
+    throw new Error('Origen no permitido');
+  }
+
+  if (base_url === 'https://darioarcas.github.io' || base_url === 'http://localhost:3000') {
+    base_url += '/dissidents-web/#';
+  }
+
+  try {
+    // Obtener el precio de la suscripción desde Firestore
+    const cursoRef = db.doc(`cursos_privados/suscription`);  
+    const cursoDoc = await cursoRef.get();
+
+    if (!cursoDoc.exists) {
+      throw new Error('Suscripción no encontrada');
+    }
+
+    const cursoData = cursoDoc.data();
+    const precio = cursoData.precio;  // Suponiendo que el campo "precio" está en el curso
+
+    // Crear la preferencia de suscripción sin asociarla a un curso
+    const successUrl = `${base_url}/perfil`;
+    const failureUrl = `${base_url}/error-pago`;
+
+    // Configuración de la suscripción
+    const preference = {
+      items: [
+        {
+          title: 'Suscripción mensual a los servicios de Dissidents School',  // Título genérico para la suscripción
+          quantity: 1,
+          unit_price: precio,  // Precio dinámico
+          currency_id: 'ARS',
+        },
+      ],
+      back_urls: {
+        success: successUrl,
+        failure: failureUrl,
+      },
+      notification_url: `https://backend-dissident.onrender.com/api/webhook/mercadopago`,  // URL del webhook
+      external_reference: uid,  // Aquí usamos el UID del usuario como referencia externa
+      auto_return: 'approved',
+      subscription: {
+        frequency: 1,  // Frecuencia mensual
+        frequency_type: 'months',
+        transaction_amount: precio,  // Valor mensual de la suscripción
+        currency_id: 'ARS',
+        back_urls: {
+          success: successUrl,
+          failure: failureUrl,
+        },
+      },
+    };
+
+    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify(preference),
+    });
+
+    const data = await response.json();
+    console.log("✅ Preferencia de suscripción creada:", data);
+    return data.init_point;  // Retorna el punto de inicio para redirigir al usuario
+  } catch (error) {
+    console.error('❌ Error creando preferencia de suscripción:', error);
+    throw error;
+  }
+};
+
+
+
+module.exports = { crearPreferenciaPago, crearSuscripcion };
