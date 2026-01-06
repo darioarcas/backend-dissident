@@ -103,14 +103,14 @@ const crearSuscripcion = async ({ uid, base_url }) => {
     }
 
     const cursoData = cursoDoc.data();
-    const precio = cursoData.precio;  // Suponiendo que el campo "precio" está en el curso
+    const precio = cursoData.precio;  // Precio de la suscripción
 
-    // Crear la preferencia de suscripción sin asociarla a un curso
+    // Crear la preferencia de suscripción
     const successUrl = `${base_url}/perfil`;
     const failureUrl = `${base_url}/error-pago`;
 
-    // Configuración de la suscripción
-    const preference = {
+    // Configuración de la suscripción recurrente
+    const subscription = {
       items: [
         {
           title: 'Suscripción mensual a los servicios de Dissidents School',  // Título genérico para la suscripción
@@ -126,6 +126,7 @@ const crearSuscripcion = async ({ uid, base_url }) => {
       notification_url: `https://backend-dissident.onrender.com/api/webhook/mercadopago`,  // URL del webhook
       external_reference: uid,  // Aquí usamos el UID del usuario como referencia externa
       auto_return: 'approved',
+      // Aquí se crea el plan recurrente con las configuraciones correctas
       subscription: {
         frequency: 1,  // Frecuencia mensual
         frequency_type: 'months',
@@ -142,9 +143,9 @@ const crearSuscripcion = async ({ uid, base_url }) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+        Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,  // Token de MercadoPago
       },
-      body: JSON.stringify(preference),
+      body: JSON.stringify(subscription),
     });
 
     const data = await response.json();
@@ -155,6 +156,7 @@ const crearSuscripcion = async ({ uid, base_url }) => {
     throw error;
   }
 };
+
 
 
 
