@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 const { crearPreferenciaPago } = require('../services/mercadoPagoService.js');
+const { crearSuscripcion } = require('../services/mercadoPagoService.js');
 const db = admin.firestore();
 
 // Ruta para crear la preferencia de pago
