@@ -91,49 +91,45 @@ router.post("/mercadopago", async (req, res) => {
     else if (type === "subscription") {
       const subscriptionStatus = data.status;  // El estado de la suscripción
 
-      const { id, external_reference } = data;
-      const uid = external_reference;  // Ahora usamos el UID como referencia externa
+      const { id, external_reference } = data;  // ID de la suscripción y UID del usuario
 
-      // Obtener la información del usuario
-      const userRef = db.collection("users").doc(uid);
+      // Obtener el usuario desde Firestore
+      const userRef = db.collection("users").doc(external_reference);
       const userSnap = await userRef.get();
 
       if (!userSnap.exists) {
-        console.warn("⚠️ Usuario no encontrado:", uid);
+        console.warn("⚠️ Usuario no encontrado:", external_reference);
         return res.sendStatus(404);
       }
 
       const userData = userSnap.data();
 
       if (subscriptionStatus === "cancelled") {
-        // Si la suscripción fue cancelada
-        console.log(`⚠️ Suscripción cancelada para el usuario ${uid}`);
+        console.log(`⚠️ Suscripción cancelada para el usuario ${external_reference}`);
         await userRef.update({
           suscripcionActiva: false,
-          suscripcionFechaVencimiento: admin.firestore.FieldValue.serverTimestamp(), // Actualizamos la fecha de vencimiento
+          suscripcionFechaVencimiento: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
 
       if (subscriptionStatus === "rejected") {
-        // Si el pago fue rechazado
-        console.log(`⚠️ El pago fue rechazado para el usuario ${uid}`);
+        console.log(`⚠️ El pago de la suscripción fue rechazado para el usuario ${external_reference}`);
       }
 
       if (subscriptionStatus === "active") {
-        // Si la suscripción se activa
-        console.log(`✅ Suscripción activada para el usuario ${uid}`);
+        console.log(`✅ Suscripción activada para el usuario ${external_reference}`);
         await userRef.update({
           suscripcionActiva: true,
-          suscripcionFechaVencimiento: admin.firestore.FieldValue.serverTimestamp(), // Actualizamos la fecha de vencimiento
+          suscripcionFechaVencimiento: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
 
-      // Emitir notificación sobre el estado de la suscripción
+      // Emitir notificación
       if (req.io) {
         const notifyMessage = {
           message: `🔔 Estado de suscripción cambiado: ${subscriptionStatus}`,
           type: "subscription_status_changed",
-          userId: uid,
+          userId: external_reference,
           timestamp: new Date().toISOString(),
         };
 
@@ -148,5 +144,12 @@ router.post("/mercadopago", async (req, res) => {
     res.sendStatus(500);
   }
 });
+
+
+
+
+
+
+
 
 module.exports = router;
