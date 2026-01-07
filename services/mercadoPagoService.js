@@ -105,7 +105,7 @@ const crearPlanSuscripcion = async (precio, base_url) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
     },
     body: JSON.stringify(planData),
   });
@@ -145,7 +145,7 @@ const crearPreferenciaSuscripcion = async ({ uid, precio, planId, base_url }) =>
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
     },
     body: JSON.stringify(preferenceData),
   });
