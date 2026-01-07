@@ -48,6 +48,11 @@ const crearPreferenciaPago = async ({ cursoNombre, cursoId, uid, base_url }) => 
           currency_id: 'ARS',
         },
       ],
+      metadata: {
+        uid,
+        cursoId,
+        tipo: "pago_unico"
+      },
       back_urls: {
         success: successUrl,
         failure: failureUrl,
