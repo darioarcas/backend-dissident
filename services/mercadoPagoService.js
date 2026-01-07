@@ -222,7 +222,7 @@ const crearSuscripcion = async ({ uid, base_url }) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,  // Token de MercadoPago
+        Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,  // Token de MercadoPago
       },
       body: JSON.stringify(subscription),
     });
