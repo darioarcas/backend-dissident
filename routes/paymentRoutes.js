@@ -75,7 +75,7 @@ router.post("/webhook", webhookMercadoPago);
 
 
 // Ruta para crear una suscripción
-router.post("/api/create_subscription", async (req, res) => {
+router.post("/create_subscription", async (req, res) => {
   try {
     const { cursoNombre, cursoId, uid, base_url, email } = req.body;
 
