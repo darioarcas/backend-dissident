@@ -87,6 +87,20 @@ router.post("/create_subscription", async (req, res) => {
       throw new Error('Suscripción no encontrada');
     }
 
+    // Emitir notificación a todos los clientes conectados (opcional)
+    if (req.io) {
+      const payload = {
+        type: 'subscription_created',
+        uid,
+        init_point,
+        createdAt: new Date().toISOString()
+      };
+      req.io.emit('notify', JSON.stringify(payload));
+      console.log('[notify] subscription_created emitted:', payload);
+    } else {
+      console.warn('[notify] req.io not available — no emit on subscription creation');
+    }
+
     const cursoData = cursoDoc.data();
     const precio = cursoData.precio;  // Precio de la suscripción
 

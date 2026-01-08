@@ -88,6 +88,7 @@ export const webhookMercadoPago = async (req, res) => {
 
       // *** ACTIVAR SUSCRIPCIÓN ***
       if (sub.status === "authorized") {
+        console.log("✅ Suscripcion Activada:", uid, cursoId);
         await db.collection("users").doc(uid).update({
           suscripcionActiva: true,
           suscripcionFechaInicio: new Date(),
@@ -113,6 +114,7 @@ export const webhookMercadoPago = async (req, res) => {
 
       // *** DESACTIVAR SUSCRIPCIÓN ***
       if (sub.status === "cancelled" || sub.status === "paused" || sub.status === "expired") {
+        console.log("❌ Suscripcion Cancelada:", uid, cursoId);
         await db.collection("users").doc(uid).update({
           suscripcionActiva: false,
         });
