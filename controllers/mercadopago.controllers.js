@@ -59,6 +59,82 @@ export const webhookMercadoPago = async (req, res) => {
       }
     }
 
+
+
+    // 🔁 SUSCRIPCIONES
+    if (type === "preapproval") {
+      const preapprovalId = data.id;
+
+      // Obtengo datos actualizados (MP manda un ID, no toda la suscripción)
+      const mpRes = await fetch(
+        `https://api.mercadopago.com/preapproval/${preapprovalId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
+          },
+        }
+      );
+
+      const sub = await mpRes.json();
+
+      // extraigo metadata
+      const { uid, cursoId } = sub.metadata || {};
+
+      // actualizo estado en Firestore
+      await db.collection("suscripciones").doc(preapprovalId).update({
+        status: sub.status,
+        updatedAt: new Date(),
+      });
+
+      // *** ACTIVAR SUSCRIPCIÓN ***
+      if (sub.status === "authorized") {
+        await db.collection("users").doc(uid).update({
+          suscripcionActiva: true,
+          suscripcionFechaInicio: new Date(),
+          suscripcionVencimiento: admin.firestore.Timestamp.fromMillis(
+            new Date().setMonth(new Date().getMonth() + 1)
+          ),
+        });
+
+        // notificación opcional por socket
+        if (req.io) {
+          req.io.emit(
+            "notify",
+            JSON.stringify({
+              type: "subscription_activated",
+              uid,
+              cursoId,
+              status: sub.status,
+              at: new Date().toISOString(),
+            })
+          );
+        }
+      }
+
+      // *** DESACTIVAR SUSCRIPCIÓN ***
+      if (sub.status === "cancelled" || sub.status === "paused" || sub.status === "expired") {
+        await db.collection("users").doc(uid).update({
+          suscripcionActiva: false,
+        });
+
+        if (req.io) {
+          req.io.emit(
+            "notify",
+            JSON.stringify({
+              type: "subscription_cancelled",
+              uid,
+              cursoId,
+              status: sub.status,
+              at: new Date().toISOString(),
+            })
+          );
+        }
+      }
+
+      return res.sendStatus(200);
+    }
+
+
     res.sendStatus(200);
   } catch (error) {
     console.error("Webhook MercadoPago error:", error);
