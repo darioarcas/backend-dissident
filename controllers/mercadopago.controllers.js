@@ -6,27 +6,27 @@ export const webhookMercadoPago = async (req, res) => {
     const { type, data } = req.body;
 
     // 🔁 SUSCRIPCIONES
-    if (type === "preapproval") {
-      const preapprovalId = data.id;
+    // if (type === "preapproval") {
+    //   const preapprovalId = data.id;
 
-      const mpRes = await fetch(
-        `https://api.mercadopago.com/preapproval/${preapprovalId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
-          },
-        }
-      );
+    //   const mpRes = await fetch(
+    //     `https://api.mercadopago.com/preapproval/${preapprovalId}`,
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
+    //       },
+    //     }
+    //   );
 
-      const sub = await mpRes.json();
+    //   const sub = await mpRes.json();
 
-      await db.collection("suscripciones")
-        .doc(preapprovalId)
-        .update({
-          status: sub.status,
-          last_update: new Date(),
-        });
-    }
+    //   await db.collection("suscripciones")
+    //     .doc(preapprovalId)
+    //     .update({
+    //       status: sub.status,
+    //       last_update: new Date(),
+    //     });
+    // }
 
     // 💰 PAGOS
     if (type === "payment") {
