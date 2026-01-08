@@ -120,6 +120,23 @@ router.post("/create_subscription", async (req, res) => {
 
     const data = await response.json();
 
+
+    // Validar que se haya creado la suscripción correctamente
+    if (!data.id) {
+      console.error("❌ Preapproval sin ID:", data);
+      return res.status(500).json({ error: "No se pudo crear la suscripción" });
+    }
+
+
+    // Validar email
+    if (!email) {
+      console.error("❌ El email es requerido para suscripciones");
+      return res.status(400).json({ error: "Falta email" });
+    }
+
+
+
+
     // 🔐 Guardamos suscripción en estado pendiente
     await db.collection("suscripciones").doc(data.id).set({
       uid,
