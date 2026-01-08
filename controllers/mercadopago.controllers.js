@@ -56,6 +56,32 @@ export const webhookMercadoPago = async (req, res) => {
             pagoId: paymentId,
             fecha: new Date(),
           });
+
+
+        // si es una suscripción, activar suscripción
+        if (payment.preapproval_id) {
+          // obtener datos de la suscripción
+            const preId = payment.preapproval_id;
+            const subDoc = await db.collection("suscripciones").doc(preId).get();
+
+            if (!subDoc.exists) {
+              console.warn("Suscripción no encontrada en Firestore:", preId);
+              return res.sendStatus(200);
+            }
+
+            const { uid } = subDoc.data();
+
+            // activar suscripción
+            await db.collection("users").doc(uid).update({
+              suscripcionActiva: true,
+              suscripcionFechaInicio: new Date(),
+              suscripcionVencimiento: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+            });
+
+            console.log("🔥 SUSCRIPCIÓN ACTIVADA PARA UID:", uid);
+
+            return res.sendStatus(200);
+        }
       }
     }
 
@@ -63,6 +89,7 @@ export const webhookMercadoPago = async (req, res) => {
 
     // 🔁 SUSCRIPCIONES
     if (type === "preapproval") {
+      console.log("Webhook de suscripción recibido");
       const preapprovalId = data.id;
 
       // Obtengo datos actualizados (MP manda un ID, no toda la suscripción)
