@@ -110,13 +110,21 @@ router.get("/subscription/:preapprovalId/verify", async (req, res) => {
 
     // 👉 ACTIVAR AUTOMÁTICAMENTE SI AUTORIZADA
     if (sub.status === "authorized") {
+
+      // Activar suscripción en Firestore
+      await db.collection("suscripciones").doc(preapprovalId).update({
+        status: sub.status,
+        updatedAt: new Date()
+      });
+
+      // Activar SUSCRIPCIÓN en usuario
       await db.collection("users").doc(uid).update({
         suscripcionActiva: true,
+        suscripcionId: preapprovalId,
         suscripcionFechaInicio: new Date(),
-        suscripcionVencimiento: new Date(
-          new Date().setMonth(new Date().getMonth() + 1)
-        ),
+        suscripcionVencimiento: new Date(new Date().setMonth(new Date().getMonth() + 1))
       });
+
 
       console.log(`🔥 SUSCRIPCIÓN ACTIVADA PARA UID: ${uid}`);
 
@@ -264,60 +272,19 @@ router.post("/create_subscription", async (req, res) => {
       createdAt: new Date(),
     });
 
-    res.json({ init_point: data.init_point });
 
+    res.json({
+      init_point: data.init_point,
+      preapproval_id: data.id
+    });
+
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error creando suscripción" });
   }
 });
 
-
-
-
-// Ruta para crear una suscripción
-// router.post('/create_subscription', async (req, res) => {
-//   console.log("📥 Llamada recibida en /create_subscription");
-
-//   try {
-//     const { uid, base_url } = req.body;
-
-//     // Crear la suscripción en MercadoPago
-//     const init_point = await crearSuscripcion({
-//       uid,
-//       base_url
-//     });
-
-//     console.log("🔁 init_point generado:", init_point);
-
-//     // Activamos la suscripción en la base de datos
-//     const userRef = db.collection("users").doc(uid);
-//     await userRef.update({
-//       suscripcionActiva: true,  // Activamos el campo de suscripción
-//       suscripcionFechaInicio: admin.firestore.FieldValue.serverTimestamp(),
-//       suscripcionFechaVencimiento: admin.firestore.FieldValue.serverTimestamp(),
-//     });
-
-//     // Emitir notificación a todos los clientes conectados (opcional)
-//     if (req.io) {
-//       const payload = {
-//         type: 'subscription_created',
-//         uid,
-//         init_point,
-//         createdAt: new Date().toISOString()
-//       };
-//       req.io.emit('notify', JSON.stringify(payload));
-//       console.log('[notify] subscription_created emitted:', payload);
-//     } else {
-//       console.warn('[notify] req.io not available — no emit on subscription creation');
-//     }
-
-//     return res.status(201).json({ init_point });
-//   } catch (error) {
-//     console.error("❌ Error en /create_subscription:", error);
-//     return res.status(500).json({ error: 'Error creando suscripción' });
-//   }
-// });
 
 
 module.exports = router;
