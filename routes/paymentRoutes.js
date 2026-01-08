@@ -175,12 +175,12 @@ router.get("/subscription/:preapprovalId/verify", async (req, res) => {
 // Ruta para crear una suscripción
 router.post("/create_subscription", async (req, res) => {
   try {
-    const { cursoNombre, cursoId, uid, base_url, email } = req.body;
-
+    const { cursoNombre, cursoId, uid, base_url: originalBaseUrl, email } = req.body;
+    let base_url = originalBaseUrl;
 
     // Ajustar base_url para GitHub Pages o localhost
     if (base_url === 'https://darioarcas.github.io' || base_url === 'http://localhost:3000') {
-      base_url += '/dissidents-web/#';
+      base_url = `${base_url}/dissidents-web/#`;
     }
 
 
