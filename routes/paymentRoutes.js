@@ -97,7 +97,15 @@ router.get("/subscription/:preapprovalId/verify", async (req, res) => {
     console.log("🔍 Estado de suscripción consultado:", sub.status);
 
     // EXTRAER UID DESDE METADATA (esto viene del create_subscription)
-    const { uid } = sub.metadata || {};
+    let uid = sub?.metadata?.uid || null;
+
+    // fallback si viene sin metadata
+    if (!uid) {
+      const snap = await db.collection("suscripciones").doc(preapprovalId).get();
+      if (snap.exists) {
+          uid = snap.data()?.uid;
+      }
+    }
 
     if (!uid) {
       return res.json({
