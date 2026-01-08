@@ -6,7 +6,7 @@ const fetch = require("node-fetch");
 
 
 
-router.post("/mercadopago", async (req, res) => {
+router.post("/", async (req, res) => {
   console.log("🌐 WEBHOOK RECIBIDO:", JSON.stringify(req.body, null, 2));
   try {
     const { type, data } = req.body;
