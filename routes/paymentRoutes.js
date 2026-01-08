@@ -92,7 +92,7 @@ router.post("/create_subscription", async (req, res) => {
       const payload = {
         type: 'subscription_created',
         uid,
-        init_point,
+        // init_point,
         createdAt: new Date().toISOString()
       };
       req.io.emit('notify', JSON.stringify(payload));
