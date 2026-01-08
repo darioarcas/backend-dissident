@@ -146,6 +146,39 @@ router.post("/", async (req, res) => {
       }
     }
 
+
+
+
+
+
+    if (req.body.type === "subscription_preapproval") {
+      const preapprovalId = req.body.data.id;
+
+      const resp = await fetch(
+        `https://api.mercadopago.com/preapproval/${preapprovalId}`,
+        {
+          headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` }
+        }
+      );
+
+      const sub = await resp.json();
+      console.log("📡 PREAPPROVAL ESTADO:", sub.status);
+
+      if (sub.status === "authorized") {
+        const subDoc = await db.collection("suscripciones").doc(preapprovalId).get();
+        const { uid } = subDoc.data();
+
+        await db.collection("users").doc(uid).update({
+          suscripcionActiva: true,
+          suscripcionFechaInicio: new Date()
+        });
+
+        console.log("🔥 ACTIVA SUSCRIPCIÓN PARA UID:", uid);
+      }
+
+      return res.sendStatus(200);
+    }
+
     res.sendStatus(200);
   } catch (error) {
     console.error("❌ Error en webhook de Mercado Pago:", error);
