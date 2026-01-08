@@ -74,6 +74,96 @@ router.post("/webhook", webhookMercadoPago);
 
 
 
+
+
+
+// Ruta para consultar/activar suscripción
+router.get("/subscription/:preapprovalId/verify", async (req, res) => {
+  try {
+    const { preapprovalId } = req.params;
+
+    const resp = await fetch(
+      `https://api.mercadopago.com/preapproval/${preapprovalId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const sub = await resp.json();
+
+    console.log("🔍 Estado de suscripción consultado:", sub.status);
+
+    // EXTRAER UID DESDE METADATA (esto viene del create_subscription)
+    const { uid } = sub.metadata || {};
+
+    if (!uid) {
+      return res.json({
+        status: sub.status,
+        activated: false,
+        reason: "sin_metadata_uid",
+        raw: sub
+      });
+    }
+
+    // 👉 ACTIVAR AUTOMÁTICAMENTE SI AUTORIZADA
+    if (sub.status === "authorized") {
+      await db.collection("users").doc(uid).update({
+        suscripcionActiva: true,
+        suscripcionFechaInicio: new Date(),
+        suscripcionVencimiento: new Date(
+          new Date().setMonth(new Date().getMonth() + 1)
+        ),
+      });
+
+      console.log(`🔥 SUSCRIPCIÓN ACTIVADA PARA UID: ${uid}`);
+
+      return res.json({
+        status: sub.status,
+        activated: true,
+        uid,
+        raw: sub
+      });
+    }
+
+    // Caso suscripción cancelada / pausada
+    if (["cancelled", "paused", "expired"].includes(sub.status)) {
+      await db.collection("users").doc(uid).update({
+        suscripcionActiva: false
+      });
+
+      console.log(`🛑 SUSCRIPCIÓN DESACTIVADA PARA UID: ${uid}`);
+
+      return res.json({
+        status: sub.status,
+        activated: false,
+        reason: "cancelled",
+        uid,
+        raw: sub
+      });
+    }
+
+    // Caso normal sin cambios
+    return res.json({
+      status: sub.status,
+      activated: false,
+      raw: sub
+    });
+
+  } catch (error) {
+    console.error("Error consultando estado de suscripción:", error);
+    res.sendStatus(500);
+  }
+});
+
+
+
+
+
+
+
 // Ruta para crear una suscripción
 router.post("/create_subscription", async (req, res) => {
   try {
@@ -140,6 +230,21 @@ router.post("/create_subscription", async (req, res) => {
       console.error("❌ Preapproval sin ID:", data);
       return res.status(500).json({ error: "No se pudo crear la suscripción" });
     }
+
+
+
+    // 🔥 ACTIVACIÓN INMEDIATA 
+    if (data.status === "authorized") {
+      await db.collection("users").doc(uid).update({
+        suscripcionActiva: true,
+        suscripcionFechaInicio: new Date(),
+        suscripcionVencimiento: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+        suscripcionId: data.id
+      });
+
+      console.log("🔥 SUSCRIPCIÓN ACTIVADA INMEDIATA PARA UID:", uid);
+    }
+
 
 
     // Validar email

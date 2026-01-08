@@ -151,29 +151,39 @@ router.post("/", async (req, res) => {
 
 
 
-    if (req.body.type === "subscription_preapproval") {
-      const preapprovalId = req.body.data.id;
+
+    // MercadoPago ENVÍA "preapproval" para suscripciones
+    if (type === "preapproval") {
+      const preapprovalId = data.id;
 
       const resp = await fetch(
         `https://api.mercadopago.com/preapproval/${preapprovalId}`,
-        {
-          headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` }
-        }
+        { headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}` } }
       );
 
       const sub = await resp.json();
-      console.log("📡 PREAPPROVAL ESTADO:", sub.status);
+      const subSnap = await db.collection("suscripciones").doc(preapprovalId).get();
 
-      if (sub.status === "authorized") {
-        const subDoc = await db.collection("suscripciones").doc(preapprovalId).get();
-        const { uid } = subDoc.data();
+      if (!subSnap.exists) return res.sendStatus(200);
 
+      const { uid } = subSnap.data();
+      const estado = sub.status;
+
+      console.log("📡 EVENTO DE SUSCRIPCIÓN:", preapprovalId, estado);
+
+      // 🔻 Cancelaciones y pausas
+      if (estado === "cancelled" || estado === "paused") {
+        await db.collection("users").doc(uid).update({
+          suscripcionActiva: false
+        });
+      }
+
+      // 🔼 Renovaciones (ciclo)
+      if (estado === "active") {
         await db.collection("users").doc(uid).update({
           suscripcionActiva: true,
-          suscripcionFechaInicio: new Date()
+          suscripcionVencimiento: new Date(new Date().setMonth(new Date().getMonth() + 1))
         });
-
-        console.log("🔥 ACTIVA SUSCRIPCIÓN PARA UID:", uid);
       }
 
       return res.sendStatus(200);
@@ -185,6 +195,8 @@ router.post("/", async (req, res) => {
     res.sendStatus(500);
   }
 });
+
+
 
 
 
