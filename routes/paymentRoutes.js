@@ -177,6 +177,13 @@ router.post("/create_subscription", async (req, res) => {
   try {
     const { cursoNombre, cursoId, uid, base_url, email } = req.body;
 
+
+    // Ajustar base_url para GitHub Pages o localhost
+    if (base_url === 'https://darioarcas.github.io' || base_url === 'http://localhost:3000') {
+      base_url += '/dissidents-web/#';
+    }
+
+
     // Obtener el precio de la suscripción desde Firestore
     const cursoRef = db.doc(`cursos_privados/suscription`);  
     const cursoDoc = await cursoRef.get();
@@ -278,7 +285,7 @@ router.post("/create_subscription", async (req, res) => {
       preapproval_id: data.id
     });
 
-    
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error creando suscripción" });

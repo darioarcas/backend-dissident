@@ -19,6 +19,7 @@ const crearPreferenciaPago = async ({ cursoNombre, cursoId, uid, base_url }) => 
   if (!allowedOrigins.includes(base_url)) {
     throw new Error('Origen no permitido');
   }
+  // Ajustar base_url para GitHub Pages o localhost
   if (base_url === 'https://darioarcas.github.io' || base_url === 'http://localhost:3000') {
     base_url += '/dissidents-web/#';
   }
@@ -168,11 +169,12 @@ const crearPreferenciaSuscripcion = async ({ uid, precio, planId, base_url }) =>
 
 // Crear una suscripción
 const crearSuscripcion = async ({ uid, base_url }) => {
+  // Validar que base_url sea una URL permitida
   const allowedOrigins = ['https://dissidentsschool.com', 'https://darioarcas.github.io', 'http://localhost:3000'];
   if (!allowedOrigins.includes(base_url)) {
     throw new Error('Origen no permitido');
   }
-
+  // Ajustar base_url para GitHub Pages o localhost
   if (base_url === 'https://darioarcas.github.io' || base_url === 'http://localhost:3000') {
     base_url += '/dissidents-web/#';
   }
