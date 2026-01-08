@@ -4,6 +4,9 @@ const express = require("express");
 const router = express.Router();
 const fetch = require("node-fetch");
 
+
+
+console.log("🌐 WEBHOOK RECIBIDO:", JSON.stringify(req.body, null, 2));
 router.post("/mercadopago", async (req, res) => {
   try {
     const { type, data } = req.body;
@@ -52,6 +55,7 @@ router.post("/mercadopago", async (req, res) => {
           return res.sendStatus(404);
         }
 
+        // ⬇⬇⬇⬇ Agregar curso a la lista de cursos del usuario
         const userData = userSnap.data();
         const cursosComprados = new Set(userData.cursosComprados || []);
         cursosComprados.add(cursoId);

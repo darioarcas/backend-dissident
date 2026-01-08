@@ -1,3 +1,5 @@
+// controllers/mercadopago.controllers.js
+
 import fetch from "node-fetch";
 import { db } from "../firebaseAdmin.js";
 
