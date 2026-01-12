@@ -309,7 +309,7 @@ router.post("/create_subscription", async (req, res) => {
 
 
 // CANCELAR SUSCRIPCIÓN desde FrontEnd
-router.post("/subscriptioncancel/:preapprovalId/cancel", async (req, res) => {
+router.post("/subscription/:preapprovalId/cancel", async (req, res) => {
   try {
     const { preapprovalId } = req.params;
 
