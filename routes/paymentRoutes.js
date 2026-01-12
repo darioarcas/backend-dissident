@@ -302,4 +302,61 @@ router.post("/create_subscription", async (req, res) => {
 
 
 
+
+
+
+
+
+
+// CANCELAR SUSCRIPCIÓN desde FrontEnd
+router.post("/subscription/:preapprovalId/cancel", async (req, res) => {
+  try {
+    const { preapprovalId } = req.params;
+
+    const resp = await fetch(
+      `https://api.mercadopago.com/preapproval/${preapprovalId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`
+        },
+        body: JSON.stringify({
+          status: "cancelled"
+        })
+      }
+    );
+
+    const data = await resp.json();
+    console.log("🔻 Cancelación MercadoPago:", data);
+
+    // Extraer UID desde Firestore (si lo guardaste)
+    const subDoc = await db.collection("suscripciones").doc(preapprovalId).get();
+    const subData = subDoc.data();
+
+    if (subData?.uid) {
+      await db.collection("users").doc(subData.uid).update({
+        suscripcionActiva: false,
+        suscripcionId: null
+      });
+    }
+
+    await db.collection("suscripciones").doc(preapprovalId).update({
+      status: "cancelled",
+      updatedAt: new Date()
+    });
+
+    return res.json({
+      cancelled: true,
+      raw: data
+    });
+
+  } catch (err) {
+    console.error("❌ Error cancelando suscripción:", err);
+    res.status(500).json({ cancelled: false, error: "cancel_error" });
+  }
+});
+
+
+
 module.exports = router;
