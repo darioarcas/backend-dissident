@@ -9,6 +9,11 @@ const { crearPreferenciaPago, crearSuscripcion } = require('../services/mercadoP
 // const { crearSuscripcion } = require('../services/mercadoPagoService.js');
 const db = admin.firestore();
 
+
+
+
+
+
 // Ruta para crear la preferencia de pago
 router.post('/create_preference', async (req, res) => {
   console.log("📥 Llamada recibida en /create_preference");
@@ -67,6 +72,9 @@ router.post('/create_preference', async (req, res) => {
 
 
 // Ruta para manejar el webhook de MercadoPago
+// Es una ruta pasiva que Mercado Pago invoca automáticamente de forma asíncrona
+// para avisarle a tu servidor cuando un pago fue aprobado, rechazado o está pendiente. 
+// Delega toda la lógica a un controlador externo llamado webhookMercadoPago
 router.post("/webhook", webhookMercadoPago);
 
 
@@ -127,6 +135,7 @@ router.get("/subscription/:preapprovalId/verify", async (req, res) => {
 
       // Activar SUSCRIPCIÓN en usuario
       await db.collection("users").doc(uid).update({
+        status: sub.status,
         suscripcionActiva: true,
         suscripcionId: preapprovalId,
         suscripcionFechaInicio: new Date(),
@@ -256,6 +265,15 @@ router.post("/create_subscription", async (req, res) => {
 
 
 
+    // Marcar en el usuario status pendiente
+    await db.collection("users").doc(uid).update({
+      status: data.status,
+    });
+
+    console.log("ESTADO DE SUSCRIPCION: ", data.status);
+
+
+
     // 🔥 ACTIVACIÓN INMEDIATA 
     if (data.status === "authorized") {
       await db.collection("users").doc(uid).update({
@@ -285,6 +303,9 @@ router.post("/create_subscription", async (req, res) => {
       cursoId,
       status: data.status,
       createdAt: new Date(),
+      nameBody: req.body.name || 'Sin Nombre',
+      email: email,
+      tipo: "suscripcion"
     });
 
 
