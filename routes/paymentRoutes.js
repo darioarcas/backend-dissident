@@ -75,6 +75,8 @@ router.post('/create_preference', async (req, res) => {
         telegramBot.telegram.sendMessage(destinoId, mensajeTelegram, { parse_mode: 'Markdown' })
           .then(() => console.log('[Telegram] Alerta enviada con éxito.'))
           .catch(err => console.error('[Telegram] Error al enviar:', err.message));
+
+        console.log("📢 [notify] Alerta de Telegram enviada:", mensajeTelegram);
       }
       // --------------------------------------------
 
@@ -247,6 +249,8 @@ router.post("/create_subscription", async (req, res) => {
 
 
       // --- Agregado: Alerta paralela a Telegram ---
+
+      console.log('req.bot  ---------------------> ', req.bot);
       if (req.bot || typeof bot !== 'undefined') {
         const telegramBot = req.bot || bot;
         
