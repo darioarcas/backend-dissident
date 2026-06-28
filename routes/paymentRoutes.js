@@ -302,7 +302,7 @@ router.post("/create_subscription", async (req, res) => {
       // ===================================================================
       // ENVÍO DIRECTO DESDE RENDER A TELEGRAM (Vía API HTTP)
       // ===================================================================
-      const TELEGRAM_TOKEN = "8748621456:AAGO14bhq5OxswhU1-XYc_dmDFYT0vwYD5o"; // Tu token
+      const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // Tu token
       const ADMIN_CHAT_ID = "6689736321"; // <--- Poné acá tu chat_id numérico real
 
       const mensajeTelegram = `🔔 **¡Nueva Suscripción Solicitada!**\n\n` +
