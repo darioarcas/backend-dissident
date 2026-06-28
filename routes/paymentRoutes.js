@@ -308,6 +308,8 @@ router.post("/create_subscription", async (req, res) => {
       const mensajeTelegram = `🔔 **¡Nueva Suscripción Solicitada!**\n\n` +
                               // `📖 *Curso:* ${cursoNombre}\n` +
                               `🆔 *ID Usuario:* ${uid}\n` +
+                              `nombre: ${req.body.name || 'Sin Nombre'}\n` +
+                              `📧 *Email:* ${email || 'Sin Email'}\n` +
                               `📅 *Fecha:* ${new Date().toLocaleDateString()}`;
                              // `🔗 [Enlace de Inscripción](${init_point})`;
 
