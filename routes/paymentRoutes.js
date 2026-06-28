@@ -294,7 +294,7 @@ router.post("/create_subscription", async (req, res) => {
         type: 'preference_created',
         cursoNombre,
         cursoId,
-        init_point,
+        //init_point,
         createdAt: new Date().toISOString()
       };
       req.io.emit('notify', JSON.stringify(payload));
@@ -309,7 +309,7 @@ router.post("/create_subscription", async (req, res) => {
       const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada!**\n\n` +
                               `📖 *Curso:* ${cursoNombre}\n` +
                               `🆔 *ID Curso:* ${cursoId}\n` +
-                              `🔗 [Enlace de Inscripción](${init_point})`;
+                             // `🔗 [Enlace de Inscripción](${init_point})`;
 
       // Render le pega directamente a los servidores de Telegram de forma asíncrona
       fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
