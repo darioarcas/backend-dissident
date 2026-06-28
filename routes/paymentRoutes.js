@@ -46,20 +46,45 @@ router.post('/create_preference', async (req, res) => {
 
     console.log("🔁 init_point generado:", init_point);
 
-    // 3. Emitir notificación a todos los clientes conectados
+
+
+    // 3. Emitir notificación a todos los clientes conectados y alertar por Telegram
     if (req.io) {
       const payload = {
         type: 'preference_created',
-        cursoNombre,
+        cursoNombre: 'Suscripción Dissidents School',
         cursoId,
         init_point,
         createdAt: new Date().toISOString()
       };
+      // Tu lógica original intacta:
       req.io.emit('notify', JSON.stringify(payload));
       console.log('[notify] preference_created emitted:', payload);
+
+      // --- Agregado: Alerta paralela a Telegram ---
+      if (req.bot || typeof bot !== 'undefined') {
+        const telegramBot = req.bot || bot;
+        
+        const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada - Dissidents Web!**\n\n` +
+                                `📖 *Curso:* ${cursoNombre}\n` +
+                                `🆔 *ID Curso:* \`${cursoId}\`\n` +
+                                `🔗 [Enlace de Inscripción](${init_point})`;
+
+        const destinoId = typeof ADMIN_CHAT_ID !== 'undefined' ? ADMIN_CHAT_ID : "6689736321";
+
+        telegramBot.telegram.sendMessage(destinoId, mensajeTelegram, { parse_mode: 'Markdown' })
+          .then(() => console.log('[Telegram] Alerta enviada con éxito.'))
+          .catch(err => console.error('[Telegram] Error al enviar:', err.message));
+      }
+      // --------------------------------------------
+
     } else {
       console.warn('[notify] req.io not available — no emit on preference creation');
     }
+
+
+
+
 
     // 4. Responder al cliente (una sola vez)
     return res.status(201).json({ init_point, cursoNombre });

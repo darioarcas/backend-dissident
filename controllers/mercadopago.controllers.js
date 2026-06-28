@@ -44,6 +44,10 @@ export const webhookMercadoPago = async (req, res) => {
             });
         }
 
+
+
+
+        
         // Si el pago proviene de una suscripción automática
         if (payment.preapproval_id) {
           const preId = payment.preapproval_id;
