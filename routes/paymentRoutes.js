@@ -248,26 +248,30 @@ router.post("/create_subscription", async (req, res) => {
       console.log('[notify] subscription_created emitted:', payload);
 
 
-      // --- Agregado: Alerta paralela a Telegram ---
+      // ===================================================================
+      // ENVÍO DIRECTO DESDE RENDER A TELEGRAM (Vía API HTTP)
+      // ===================================================================
+      const TELEGRAM_TOKEN = "8748621456:AAGO14bhq5OxswhU1-XYc_dmDFYT0vwYD5o"; // Tu token
+      const ADMIN_CHAT_ID = "6689736321"; // <--- Poné acá tu chat_id numérico real
 
-      console.log('req.bot  ---------------------> ', req.bot);
-      if (req.bot || typeof bot !== 'undefined') {
-        const telegramBot = req.bot || bot;
-        
-        const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada - Dissidents Web!**\n\n` +
-                                `📖 *Curso:* ${cursoNombre}\n` +
-                                `🆔 *ID Curso:* \`${cursoId}\`\n` +
-                                `🔗 [Enlace de Inscripción](${init_point})`;
+      const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada!**\n\n` +
+                              `📖 *Curso:* ${cursoNombre}\n` +
+                              `🆔 *ID Curso:* ${cursoId}\n` +
+                              `🔗 [Enlace de Inscripción](${init_point})`;
 
-        const destinoId = typeof ADMIN_CHAT_ID !== 'undefined' ? ADMIN_CHAT_ID : "6689736321";
-
-        telegramBot.telegram.sendMessage(destinoId, mensajeTelegram, { parse_mode: 'Markdown' })
-          .then(() => console.log('[Telegram] Alerta enviada con éxito.'))
-          .catch(err => console.error('[Telegram] Error al enviar:', err.message));
-
-        console.log("📢 [notify] Alerta de Telegram enviada:", mensajeTelegram);
-      }
-      // -----------------------------------------------------
+      // Render le pega directamente a los servidores de Telegram de forma asíncrona
+      fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ADMIN_CHAT_ID,
+          text: mensajeTelegram,
+          parse_mode: 'Markdown'
+        })
+      })
+      .then(() => console.log('[Telegram] Alerta enviada con éxito desde Render.'))
+      .catch(err => console.error('[Telegram] Error al enviar desde Render:', err.message));
+      // ==================================================================
     } else {
       console.warn('[notify] req.io not available — no emit on subscription creation');
     }
