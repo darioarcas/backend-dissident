@@ -291,14 +291,13 @@ router.post("/create_subscription", async (req, res) => {
     // 3. Emitir notificación a todos los clientes conectados (RENDER)
     if (req.io) {
       const payload = {
-        type: 'preference_created',
-        cursoNombre,
-        cursoId,
-        //init_point,
+        type: 'subscription_created',
+        uid,
+        // init_point,
         createdAt: new Date().toISOString()
       };
       req.io.emit('notify', JSON.stringify(payload));
-      console.log('[notify] preference_created emitted:', payload);
+      console.log('[notify] subscription_created emitted:', payload);
 
       // ===================================================================
       // ENVÍO DIRECTO DESDE RENDER A TELEGRAM (Vía API HTTP)
@@ -306,9 +305,10 @@ router.post("/create_subscription", async (req, res) => {
       const TELEGRAM_TOKEN = "8748621456:AAGO14bhq5OxswhU1-XYc_dmDFYT0vwYD5o"; // Tu token
       const ADMIN_CHAT_ID = "6689736321"; // <--- Poné acá tu chat_id numérico real
 
-      const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada!**\n\n` +
-                              `📖 *Curso:* ${cursoNombre}\n` +
-                              `🆔 *ID Curso:* ${cursoId}\n` +
+      const mensajeTelegram = `🔔 **¡Nueva Suscripción Solicitada!**\n\n` +
+                              // `📖 *Curso:* ${cursoNombre}\n` +
+                              `🆔 *ID Usuario:* ${uid}\n` +
+                              `📅 *Fecha:* ${new Date().toLocaleDateString()}`;
                              // `🔗 [Enlace de Inscripción](${init_point})`;
 
       // Render le pega directamente a los servidores de Telegram de forma asíncrona
