@@ -47,7 +47,7 @@ export const webhookMercadoPago = async (req, res) => {
 
 
 
-        
+
         // Si el pago proviene de una suscripción automática
         if (payment.preapproval_id) {
           const preId = payment.preapproval_id;
@@ -124,6 +124,40 @@ export const webhookMercadoPago = async (req, res) => {
               at: new Date().toISOString(),
             })
           );
+
+
+    
+          // ===================================================================
+          // ENVÍO DIRECTO DESDE RENDER A TELEGRAM (Vía API HTTP)
+          // ===================================================================
+          const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // Tu token
+          const ADMIN_CHAT_ID = "6689736321"; // <--- Poné acá tu chat_id numérico real
+    
+          const mensajeTelegram = `✅ **¡Suscripción Activada!**\n\n` +
+                                  // `📖 *Curso:* ${cursoNombre}\n` +
+                                  `🆔 *ID Usuario:* ${uid}\n` +
+                                  `nombre: ${req.body.name || 'Sin Nombre'}\n` +
+                                  `📧 *Email:* ${req.body.email || 'Sin Email'}\n` +
+                                  `📅 *Fecha:* ${new Date().toLocaleDateString()}`;
+                                  // `🔗 [Enlace de Inscripción](${init_point})`;
+    
+          // Render le pega directamente a los servidores de Telegram de forma asíncrona
+          fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: ADMIN_CHAT_ID,
+              text: mensajeTelegram,
+              parse_mode: 'Markdown'
+            })
+          })
+          .then(() => console.log('[Telegram] Alerta enviada con éxito desde Render.'))
+          .catch(err => console.error('[Telegram] Error al enviar desde Render:', err.message));
+          // ===================================================================
+
+
+
+
         }
       }
 
