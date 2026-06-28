@@ -236,41 +236,106 @@ router.post("/create_subscription", async (req, res) => {
       throw new Error('Suscripción no encontrada');
     }
 
+
+
+
+
+
+
+
+
     // Emitir notificación a todos los clientes conectados (opcional)
+    // if (req.io) {
+    //   const payload = {
+    //     type: 'subscription_created',
+    //     uid,
+    //     // init_point,
+    //     createdAt: new Date().toISOString()
+    //   };
+    //   req.io.emit('notify', JSON.stringify(payload));
+    //   console.log('[notify] subscription_created emitted:', payload);
+
+
+    //   // --- Agregado: Alerta paralela a Telegram ---
+
+    //   console.log('req.bot  ---------------------> ', req.bot);
+    //   if (req.bot || typeof bot !== 'undefined') {
+    //     const telegramBot = req.bot || bot;
+        
+    //     const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada - Dissidents Web!**\n\n` +
+    //                             `📖 *Curso:* ${cursoNombre}\n` +
+    //                             `🆔 *ID Curso:* \`${cursoId}\`\n` +
+    //                             `🔗 [Enlace de Inscripción](${init_point})`;
+
+    //     const destinoId = typeof ADMIN_CHAT_ID !== 'undefined' ? ADMIN_CHAT_ID : "6689736321";
+
+    //     telegramBot.telegram.sendMessage(destinoId, mensajeTelegram, { parse_mode: 'Markdown' })
+    //       .then(() => console.log('[Telegram] Alerta enviada con éxito.'))
+    //       .catch(err => console.error('[Telegram] Error al enviar:', err.message));
+
+    //     console.log("📢 [notify] Alerta de Telegram enviada:", mensajeTelegram);
+    //   }
+    //   // -----------------------------------------------------
+    // } else {
+    //   console.warn('[notify] req.io not available — no emit on subscription creation');
+    // }
+
+
+
+
+
+
+
+
+
+    // 3. Emitir notificación a todos los clientes conectados (RENDER)
     if (req.io) {
       const payload = {
-        type: 'subscription_created',
-        uid,
-        // init_point,
+        type: 'preference_created',
+        cursoNombre,
+        cursoId,
+        init_point,
         createdAt: new Date().toISOString()
       };
       req.io.emit('notify', JSON.stringify(payload));
-      console.log('[notify] subscription_created emitted:', payload);
+      console.log('[notify] preference_created emitted:', payload);
 
+      // ===================================================================
+      // ENVÍO DIRECTO DESDE RENDER A TELEGRAM (Vía API HTTP)
+      // ===================================================================
+      const TELEGRAM_TOKEN = "8748621456:AAGO14bhq5OxswhU1-XYc_dmDFYT0vwYD5o"; // Tu token
+      const ADMIN_CHAT_ID = "6689736321"; // <--- Poné acá tu chat_id numérico real
 
-      // --- Agregado: Alerta paralela a Telegram ---
+      const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada!**\n\n` +
+                              `📖 *Curso:* ${cursoNombre}\n` +
+                              `🆔 *ID Curso:* ${cursoId}\n` +
+                              `🔗 [Enlace de Inscripción](${init_point})`;
 
-      console.log('req.bot  ---------------------> ', req.bot);
-      if (req.bot || typeof bot !== 'undefined') {
-        const telegramBot = req.bot || bot;
-        
-        const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada - Dissidents Web!**\n\n` +
-                                `📖 *Curso:* ${cursoNombre}\n` +
-                                `🆔 *ID Curso:* \`${cursoId}\`\n` +
-                                `🔗 [Enlace de Inscripción](${init_point})`;
+      // Render le pega directamente a los servidores de Telegram de forma asíncrona
+      fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: ADMIN_CHAT_ID,
+          text: mensajeTelegram,
+          parse_mode: 'Markdown'
+        })
+      })
+      .then(() => console.log('[Telegram] Alerta enviada con éxito desde Render.'))
+      .catch(err => console.error('[Telegram] Error al enviar desde Render:', err.message));
+      // ===================================================================
 
-        const destinoId = typeof ADMIN_CHAT_ID !== 'undefined' ? ADMIN_CHAT_ID : "6689736321";
-
-        telegramBot.telegram.sendMessage(destinoId, mensajeTelegram, { parse_mode: 'Markdown' })
-          .then(() => console.log('[Telegram] Alerta enviada con éxito.'))
-          .catch(err => console.error('[Telegram] Error al enviar:', err.message));
-
-        console.log("📢 [notify] Alerta de Telegram enviada:", mensajeTelegram);
-      }
-      // -----------------------------------------------------
     } else {
-      console.warn('[notify] req.io not available — no emit on subscription creation');
+      console.warn('[notify] req.io not available — no emit on preference creation');
     }
+
+
+
+
+
+
+
+
 
     const cursoData = cursoDoc.data();
     const precio = cursoData.precio;  // Precio de la suscripción
