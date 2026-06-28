@@ -136,7 +136,7 @@ export const webhookMercadoPago = async (req, res) => {
           const mensajeTelegram = `✅ **¡Suscripción Activada!**\n\n` +
                                   // `📖 *Curso:* ${cursoNombre}\n` +
                                   `🆔 *ID Usuario:* ${uid}\n` +
-                                  `nombre: ${req.body.name || 'Sin Nombre'}\n` +
+                                  `*Nombre:* ${req.body.name || 'Sin Nombre'}\n` +
                                   `📧 *Email:* ${req.body.email || 'Sin Email'}\n` +
                                   `📅 *Fecha:* ${new Date().toLocaleDateString()}`;
                                   // `🔗 [Enlace de Inscripción](${init_point})`;
