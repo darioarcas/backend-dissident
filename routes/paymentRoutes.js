@@ -244,6 +244,24 @@ router.post("/create_subscription", async (req, res) => {
       };
       req.io.emit('notify', JSON.stringify(payload));
       console.log('[notify] subscription_created emitted:', payload);
+
+
+      // --- Agregado: Alerta paralela a Telegram ---
+      if (req.bot || typeof bot !== 'undefined') {
+        const telegramBot = req.bot || bot;
+        
+        const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada - Dissidents Web!**\n\n` +
+                                `📖 *Curso:* ${cursoNombre}\n` +
+                                `🆔 *ID Curso:* \`${cursoId}\`\n` +
+                                `🔗 [Enlace de Inscripción](${init_point})`;
+
+        const destinoId = typeof ADMIN_CHAT_ID !== 'undefined' ? ADMIN_CHAT_ID : "6689736321";
+
+        telegramBot.telegram.sendMessage(destinoId, mensajeTelegram, { parse_mode: 'Markdown' })
+          .then(() => console.log('[Telegram] Alerta enviada con éxito.'))
+          .catch(err => console.error('[Telegram] Error al enviar:', err.message));
+      }
+      // -----------------------------------------------------
     } else {
       console.warn('[notify] req.io not available — no emit on subscription creation');
     }
