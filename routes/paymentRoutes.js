@@ -342,6 +342,9 @@ router.post("/create_subscription", async (req, res) => {
     const cursoData = cursoDoc.data();
     const precio = cursoData.precio;  // Precio de la suscripción
 
+    console.log("💰 Precio de la suscripción obtenido:", precio);
+    console.log("📧 Email recibido para suscripción:", email);
+
     const response = await fetch(
       "https://api.mercadopago.com/preapproval",
       {
@@ -351,7 +354,7 @@ router.post("/create_subscription", async (req, res) => {
           Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
         },
         body: JSON.stringify({
-          reason: `Suscripción ${cursoNombre}`,
+          reason: "Suscripción a Dissidents School", //Suscripción ${cursoNombre}`,
           back_url: `${base_url}/suscripcion-estado`,
           payer_email: email, // USUARIO REAL
           auto_recurring: {
