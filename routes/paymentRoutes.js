@@ -215,7 +215,6 @@ router.get("/subscription/:preapprovalId/verify", async (req, res) => {
 
 
 
-
 // Ruta para crear una suscripción
 router.post("/create_subscription", async (req, res) => {
   try {
@@ -227,8 +226,7 @@ router.post("/create_subscription", async (req, res) => {
       base_url = `${base_url}/dissidents-web/#`;
     }
 
-
-    // Obtener el precio de la suscripción desde Firestore
+    // 1. Obtener los datos del curso e inicializar PRECIO arriba de todo
     const cursoRef = db.doc(`cursos_privados/suscription`);  
     const cursoDoc = await cursoRef.get();
 
@@ -236,116 +234,62 @@ router.post("/create_subscription", async (req, res) => {
       throw new Error('Suscripción no encontrada');
     }
 
+    const cursoData = cursoDoc.data();
+    const precio = cursoData.precio;  // Precio de la suscripción listo para usar
+
+    console.log("💰 Precio de la suscripción obtenido:", precio);
+    console.log("📧 Email recibido para suscripción:", email);
 
 
-
-
-
-
-
-
-    // Emitir notificación a todos los clientes conectados (opcional)
-    // if (req.io) {
-    //   const payload = {
-    //     type: 'subscription_created',
-    //     uid,
-    //     // init_point,
-    //     createdAt: new Date().toISOString()
-    //   };
-    //   req.io.emit('notify', JSON.stringify(payload));
-    //   console.log('[notify] subscription_created emitted:', payload);
-
-
-    //   // --- Agregado: Alerta paralela a Telegram ---
-
-    //   console.log('req.bot  ---------------------> ', req.bot);
-    //   if (req.bot || typeof bot !== 'undefined') {
-    //     const telegramBot = req.bot || bot;
-        
-    //     const mensajeTelegram = `🔔 **¡Nueva Preferencia Creada - Dissidents Web!**\n\n` +
-    //                             `📖 *Curso:* ${cursoNombre}\n` +
-    //                             `🆔 *ID Curso:* \`${cursoId}\`\n` +
-    //                             `🔗 [Enlace de Inscripción](${init_point})`;
-
-    //     const destinoId = typeof ADMIN_CHAT_ID !== 'undefined' ? ADMIN_CHAT_ID : "6689736321";
-
-    //     telegramBot.telegram.sendMessage(destinoId, mensajeTelegram, { parse_mode: 'Markdown' })
-    //       .then(() => console.log('[Telegram] Alerta enviada con éxito.'))
-    //       .catch(err => console.error('[Telegram] Error al enviar:', err.message));
-
-    //     console.log("📢 [notify] Alerta de Telegram enviada:", mensajeTelegram);
-    //   }
-    //   // -----------------------------------------------------
-    // } else {
-    //   console.warn('[notify] req.io not available — no emit on subscription creation');
-    // }
-
-
-
-
-
-
-
-
-
-    // 3. Emitir notificación a todos los clientes conectados (RENDER)
+    // 2. Notificaciones y Telegram (Protegido en su propio try-catch)
     if (req.io) {
-      const payload = {
-        type: 'subscription_created',
-        uid,
-        // init_point,
-        createdAt: new Date().toISOString()
-      };
-      req.io.emit('notify', JSON.stringify(payload));
-      console.log('[notify] subscription_created emitted:', payload);
+      try {
+        const payload = {
+          type: 'subscription_created',
+          uid,
+          createdAt: new Date().toISOString()
+        };
+        req.io.emit('notify', JSON.stringify(payload));
+        console.log('[notify] subscription_created emitted:', payload);
 
-      // ===================================================================
-      // ENVÍO DIRECTO DESDE RENDER A TELEGRAM (Vía API HTTP)
-      // ===================================================================
-      const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // Tu token
-      const ADMIN_CHAT_ID = "6689736321"; // <--- Poné acá tu chat_id numérico real
+        // ===================================================================
+        // ENVÍO DIRECTO DESDE RENDER A TELEGRAM (Vía API HTTP)
+        // ===================================================================
+        const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN; 
+        const ADMIN_CHAT_ID = "6689736321"; 
 
-      const mensajeTelegram = `🔔 **¡Nueva Solicitud de Pago de Suscripción!**\n\n` +
-                              `🆔 *ID Usuario:* ${uid}\n` +
-                              `*Nombre:* ${req.body.name || 'Sin Nombre'}\n` +
-                              `📧 *Email:* ${email || 'Sin Email'}\n` +
-                              `💰 *Precio:* $${precio.toFixed(2)}\n` +
-                              `📅 *Fecha:* ${new Date().toLocaleDateString()}`;
-                              `*Curso:* ${cursoNombre || 'Sin Nombre'}\n` +
-                             // `🔗 [Enlace de Inscripción](${init_point})`;
+        // SINTAXIS CORREGIDA: Se concatenan todas las líneas limpiamente con el "+"
+        const mensajeTelegram = `🔔 **¡Nueva Solicitud de Pago de Suscripción!**\n\n` +
+                                `🆔 *ID Usuario:* ${uid}\n` +
+                                `*Nombre:* ${req.body.name || 'Sin Nombre'}\n` +
+                                `📧 *Email:* ${email || 'Sin Email'}\n` +
+                                `💰 *Precio:* $${precio.toFixed(2)}\n` + // <-- Ahora podés usarlo sin miedo
+                                `📅 *Fecha:* ${new Date().toLocaleDateString()}\n` +
+                                `📖 *Curso:* ${cursoNombre || 'Sin Nombre'}`;
 
-      // Render le pega directamente a los servidores de Telegram de forma asíncrona
-      fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: ADMIN_CHAT_ID,
-          text: mensajeTelegram,
-          parse_mode: 'Markdown'
+        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: mensajeTelegram,
+            parse_mode: 'Markdown'
+          })
         })
-      })
-      .then(() => console.log('[Telegram] Alerta enviada con éxito desde Render.'))
-      .catch(err => console.error('[Telegram] Error al enviar desde Render:', err.message));
-      // ===================================================================
+        .then(() => console.log('[Telegram] Alerta enviada con éxito desde Render.'))
+        .catch(err => console.error('[Telegram Async Error]:', err.message));
+        // ===================================================================
 
+      } catch (errTelegram) {
+        // Si hay problemas con el string o con el bot, se frena ACÁ y no arruina Mercado Pago
+        console.error('[Telegram Bloque Seguro] Error controlado:', errTelegram.message);
+      }
     } else {
       console.warn('[notify] req.io not available — no emit on preference creation');
     }
 
 
-
-
-
-
-
-
-
-    const cursoData = cursoDoc.data();
-    const precio = cursoData.precio;  // Precio de la suscripción
-
-    console.log("💰 Precio de la suscripción obtenido:", precio);
-    console.log("📧 Email recibido para suscripción:", email);
-
+    // 3. Tu flujo de Mercado Pago intacto y 100% asegurado
     const response = await fetch(
       "https://api.mercadopago.com/preapproval",
       {
@@ -355,9 +299,9 @@ router.post("/create_subscription", async (req, res) => {
           Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN_SUSCRIPCION}`,
         },
         body: JSON.stringify({
-          reason: "Suscripción a Dissidents School", //Suscripción ${cursoNombre}`,
+          reason: "Suscripción a Dissidents School", 
           back_url: `${base_url}/suscripcion-estado`,
-          payer_email: email, // USUARIO REAL
+          payer_email: email, 
           auto_recurring: {
             frequency: 1,
             frequency_type: "months",
@@ -376,14 +320,11 @@ router.post("/create_subscription", async (req, res) => {
 
     const data = await response.json();
 
-
     // Validar que se haya creado la suscripción correctamente
     if (!data.id) {
       console.error("❌ Preapproval sin ID:", data);
       return res.status(500).json({ error: "No se pudo crear la suscripción" });
     }
-
-
 
     // Marcar en el usuario status pendiente
     await db.collection("users").doc(uid).update({
@@ -391,8 +332,6 @@ router.post("/create_subscription", async (req, res) => {
     });
 
     console.log("ESTADO DE SUSCRIPCION: ", data.status);
-
-
 
     // 🔥 ACTIVACIÓN INMEDIATA 
     if (data.status === "authorized") {
@@ -402,20 +341,14 @@ router.post("/create_subscription", async (req, res) => {
         suscripcionVencimiento: new Date(new Date().setMonth(new Date().getMonth() + 1)),
         suscripcionId: data.id
       });
-
       console.log("🔥 SUSCRIPCIÓN ACTIVADA INMEDIATA PARA UID:", uid);
     }
-
-
 
     // Validar email
     if (!email) {
       console.error("❌ El email es requerido para suscripciones");
       return res.status(400).json({ error: "Falta email" });
     }
-
-
-
 
     // 🔐 Guardamos suscripción en estado pendiente
     await db.collection("suscripciones").doc(data.id).set({
@@ -428,15 +361,13 @@ router.post("/create_subscription", async (req, res) => {
       tipo: "suscripcion"
     });
 
-
     res.json({
       init_point: data.init_point,
       preapproval_id: data.id
     });
 
-
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error crítico en la ruta /create_subscription:", error);
     res.status(500).json({ error: "Error creando suscripción" });
   }
 });
