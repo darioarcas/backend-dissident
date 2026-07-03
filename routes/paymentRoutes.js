@@ -305,12 +305,13 @@ router.post("/create_subscription", async (req, res) => {
       const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // Tu token
       const ADMIN_CHAT_ID = "6689736321"; // <--- Poné acá tu chat_id numérico real
 
-      const mensajeTelegram = `🔔 **¡Nuevo Pago de Suscripción Solicitado!**\n\n` +
-                              // `📖 *Curso:* ${cursoNombre}\n` +
+      const mensajeTelegram = `🔔 **¡Nueva Solicitud de Pago de Suscripción!**\n\n` +
                               `🆔 *ID Usuario:* ${uid}\n` +
                               `*Nombre:* ${req.body.name || 'Sin Nombre'}\n` +
                               `📧 *Email:* ${email || 'Sin Email'}\n` +
+                              `💰 *Precio:* $${precio.toFixed(2)}\n` +
                               `📅 *Fecha:* ${new Date().toLocaleDateString()}`;
+                              `*Curso:* ${cursoNombre || 'Sin Nombre'}\n` +
                              // `🔗 [Enlace de Inscripción](${init_point})`;
 
       // Render le pega directamente a los servidores de Telegram de forma asíncrona
