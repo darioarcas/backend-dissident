@@ -185,6 +185,13 @@ router.get("/subscription/:preapprovalId/verify", async (req, res) => {
       await db.collection("users").doc(uid).update({
         suscripcionActiva: false
       });
+      
+      
+      // Actualizar suscripción en Firestore
+      await db.collection("suscripciones").doc(preapprovalId).update({
+        status: sub.status,
+        updatedAt: new Date()
+      });
 
       console.log(`🛑 SUSCRIPCIÓN DESACTIVADA PARA UID: ${uid}`);
 
